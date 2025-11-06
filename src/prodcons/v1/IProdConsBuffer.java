@@ -10,7 +10,9 @@ public void put(Message m) throws InterruptedException;
 * following a FIFO order (if M1 was put before M2, M1
 * is retrieved before M2)
 **
+**/
 public Message get() throws InterruptedException;
+
 /**
 * Returns the number of messages currently available in
 * the buffer

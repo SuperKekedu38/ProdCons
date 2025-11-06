@@ -1,36 +1,52 @@
 package prodcons.v1;
 
-public class ProdConsBuffer implements IProdConsBuffer{
+public class ProdConsBuffer implements IProdConsBuffer {
 
-	private int nfull;
-	private int nempty;
 	private Message[] buffer;
 	private int bufSize;
-	
-	
-	public ProdConsBuffer() {
-		
+	private int total = 0;
+	private int count = 0;
+
+	private int idx_prod = 0;
+	private int idx_cons = 0;
+
+	public ProdConsBuffer(int bufSize) {
+		this.bufSize = bufSize;
+		this.buffer = new Message[bufSize];
 	}
-	
+
 	@Override
-	public void put(Message m) throws InterruptedException {
-		// TODO Auto-generated method stub
-		
+	public synchronized void put(Message m) throws InterruptedException {
+		while (count == bufSize) {
+			wait();
+		}
+		buffer[idx_prod] = m;
+		idx_prod = (idx_prod + 1) % bufSize;
+		count++;
+		total++;
+		notifyAll();
+	}
+
+	@Override
+	public synchronized Message get() throws InterruptedException {
+		while (count == 0) {
+			wait();
+		}
+		Message m = buffer[idx_cons];
+		idx_cons = (idx_cons + 1) % bufSize;
+		count--;
+		notifyAll();
+		return m;
 	}
 
 	@Override
 	public int nmsg() {
-		// TODO Auto-generated method stub
-		return 0;
+		return count;
 	}
 
 	@Override
 	public int totmsg() {
-		// TODO Auto-generated method stub
-		return 0;
+		return total;
 	}
 
-
-	
-	
 }
