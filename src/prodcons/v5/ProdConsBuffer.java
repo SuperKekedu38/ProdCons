@@ -1,4 +1,4 @@
-package prodcons.v3;
+package prodcons.v5;
 
 import java.util.concurrent.Semaphore;
 
@@ -12,41 +12,41 @@ public class ProdConsBuffer implements IProdConsBuffer {
     private int totProd;
     private int finishedProd = 0;
 
-    private Semaphore verrou;
-    private Semaphore placesDispo;
-    private Semaphore messDispo;
+    private Semaphore mutex;
+    private Semaphore notFull;
+    private Semaphore notEmpty;
 
     public ProdConsBuffer(int bufSize, int totProd) {
         this.bufSize = bufSize;
         this.totProd = totProd;
         this.buffer = new Message[bufSize];
 
-        this.verrou = new Semaphore(1);
-        this.placesDispo = new Semaphore(bufSize);
-        this.messDispo = new Semaphore(0);
+        this.mutex = new Semaphore(1);
+        this.notFull = new Semaphore(bufSize);
+        this.notEmpty = new Semaphore(0);
     }
 
     @Override
     public void put(Message m) throws InterruptedException {
-    	placesDispo.acquire();
-        verrou.acquire();
+        notFull.acquire();
+        mutex.acquire();
 
         buffer[in] = m;
         in = (in + 1) % bufSize;
         count++;
         total++;
 
-        verrou.release();
-        messDispo.release();
+        mutex.release();
+        notEmpty.release();
     }
 
     @Override
     public Message get() throws InterruptedException {
-    	messDispo.acquire();
-        verrou.acquire();   
+        notEmpty.acquire();
+        mutex.acquire();   
         if (count == 0) {
-        	messDispo.release();
-            verrou.release();
+            notEmpty.release();
+            mutex.release();
             return null;
         }
 
@@ -54,11 +54,17 @@ public class ProdConsBuffer implements IProdConsBuffer {
         out = (out + 1) % bufSize;
         count--;
 
-        verrou.release();
-        placesDispo.release();
+        mutex.release();
+        notFull.release();
         
         return m;
     }
+    
+	@Override
+	public Message[] get(int k) throws InterruptedException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
     @Override
     public int nmsg() {
@@ -73,12 +79,12 @@ public class ProdConsBuffer implements IProdConsBuffer {
     @Override
     public void produced() {
         try {
-        	verrou.acquire();
+            mutex.acquire();
             finishedProd++;
             if (finishedProd == totProd) {
-            	messDispo.release();
+                notEmpty.release();
             }
-            verrou.release();
+            mutex.release();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
