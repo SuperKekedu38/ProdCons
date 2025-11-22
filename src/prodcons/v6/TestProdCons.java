@@ -6,32 +6,33 @@ import java.util.Properties;
 
 public class TestProdCons {
 
-    public static void main(String[] args) throws InvalidPropertiesFormatException, IOException {
-        Properties properties = new Properties();
-        properties.loadFromXML(TestProdCons.class.getClassLoader().getResourceAsStream("prodcons/v5/options.xml"));
+	public static void main(String[] args) throws InvalidPropertiesFormatException, IOException {
+		Properties properties = new Properties();
+		properties.loadFromXML(TestProdCons.class.getClassLoader().getResourceAsStream("prodcons/v6/options.xml"));
 
-        int nProd = Integer.parseInt(properties.getProperty("nProd"));
-        int nCons = Integer.parseInt(properties.getProperty("nCons"));
-        int bufSize = Integer.parseInt(properties.getProperty("bufSize"));
-        int prodTime = Integer.parseInt(properties.getProperty("prodTime"));
-        int consTime = Integer.parseInt(properties.getProperty("consTime"));
-        int prodMin = Integer.parseInt(properties.getProperty("prodMin"));
-        int prodMax = Integer.parseInt(properties.getProperty("prodMax"));
-        
-        int k = Integer.parseInt(properties.getProperty("k", "1"));
+		int nProd = Integer.parseInt(properties.getProperty("nProd"));
+		int nCons = Integer.parseInt(properties.getProperty("nCons"));
+		int bufSize = Integer.parseInt(properties.getProperty("bufSize"));
+		int prodTime = Integer.parseInt(properties.getProperty("prodTime"));
+		int consTime = Integer.parseInt(properties.getProperty("consTime"));
+		int prodMin = Integer.parseInt(properties.getProperty("prodMin"));
+		int prodMax = Integer.parseInt(properties.getProperty("prodMax"));
 
-        IProdConsBuffer buffer = new ProdConsBuffer(bufSize, nProd);
+		int k = Integer.parseInt(properties.getProperty("k", "1"));
+		int nbCopies = Integer.parseInt(properties.getProperty("nbCopies"));
 
-        for (int i = 0; i < nProd; i++) {
-            Thread t = new Thread(new Producer(buffer, prodMin, prodMax, prodTime));
-            t.setName("Prod-" + i);
-            t.start();
-        }
+		IProdConsBuffer buffer = new ProdConsBuffer(bufSize, nProd);
 
-        for (int i = 0; i < nCons; i++) {
-            Thread t = new Thread(new Consumer(buffer, consTime, k));
-            t.setName("Cons-" + i);
-            t.start();
-        }
-    }
+		for (int i = 0; i < nProd; i++) {
+			Thread t = new Thread(new Producer(buffer, prodMin, prodMax, prodTime, nbCopies));
+			t.setName("Prod-" + i);
+			t.start();
+		}
+
+		for (int i = 0; i < nCons; i++) {
+			Thread t = new Thread(new Consumer(buffer, consTime, k));
+			t.setName("Cons-" + i);
+			t.start();
+		}
+	}
 }

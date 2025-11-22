@@ -57,18 +57,22 @@ public class ProdConsBuffer implements IProdConsBuffer {
 		verrou.release();
 		placesDispo.release();
 
+		if(m != null) {
+			m.consumeAndWait();
+		}
+		
 		return m;
 	}
 
 	@Override
 	public Message[] get(int k) throws InterruptedException {
 		Message[] mess = new Message[k];
-		for(int i=0; i<k; i++) {
-			Message m=get();
-			if(m==null) {
+		for (int i = 0; i < k; i++) {
+			Message m = get();
+			if (m == null) {
 				return null;
 			}
-			mess[i]=m;
+			mess[i] = m;
 		}
 		return mess;
 	}
@@ -99,7 +103,12 @@ public class ProdConsBuffer implements IProdConsBuffer {
 
 	@Override
 	public void put(Message m, int n) throws InterruptedException {
-		// TODO Auto-generated method stub
-		
+		if (n > bufSize) {
+			return;
+		}
+		for (int i = 0; i < n; i++) {
+			put(m);
+		}
+		m.waitProd();
 	}
 }
