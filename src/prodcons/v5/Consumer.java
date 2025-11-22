@@ -25,15 +25,14 @@ public class Consumer implements Runnable {
 				} else {
 					Message[] mess = buffer.get(k);
 					if (mess == null) {
-						System.out.println("[C-" + Thread.currentThread().getName() + "] -> End of process");
-						break;
-					}
-					System.out.println("[C-" + Thread.currentThread().getName() + "] -> Consommé BLOC de : " + k);
-					for (Message m : mess) {
-						System.out.println("	-> " + m.getMsg());
+                        System.out.println("[C-" + Thread.currentThread().getName() + "] -> Arrêt demandé.");
+                        break; 
+                    }
+					System.out.println("[C-" + Thread.currentThread().getName() + "] -> Consommé BLOC de " + k);
+					for(Message m : mess) {
+						System.out.println("    -> " + m.getMsg());
 					}
 				}
-
 				Thread.sleep(consTime);
 			}
 		} catch (InterruptedException e) {
